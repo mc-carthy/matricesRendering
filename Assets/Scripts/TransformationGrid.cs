@@ -8,6 +8,8 @@ public class TransformationGrid : MonoBehaviour {
 
 	private Transform[] grid;
 	private List<Transformation> transformations;
+	private Matrix4x4 transformation;
+
 
 	private void Awake () {
 		grid = new Transform[gridResolution * gridResolution * gridResolution];
@@ -23,12 +25,22 @@ public class TransformationGrid : MonoBehaviour {
 	}
 
 	private void Update () {
-		GetComponents<Transformation>(transformations);
+		UpdateTransformations ();
 		for (int i = 0, z = 0; z < gridResolution; z++) {
 			for (int y = 0; y < gridResolution; y++) {
 				for (int x = 0; x < gridResolution; x++, i++) {
 					grid[i].localPosition = TransformPoint(x, y, z);
 				}
+			}
+		}
+	}
+
+	private void UpdateTransformations () {
+		GetComponents<Transformation>(transformations);
+		if (transformations.Count > 0) {
+			transformation = transformations [0].Matrix;
+			for (int i = 1; i < transformations.Count; i++) {
+				transformation = transformations[i].Matrix * transformation;
 			}
 		}
 	}
@@ -55,9 +67,11 @@ public class TransformationGrid : MonoBehaviour {
 
 	private Vector3 TransformPoint (int x, int y, int z) {
 		Vector3 coordinates = GetCoordinates (x, y, z);
+		/*
 		for (int i = 0; i < transformations.Count; i++) {
 			coordinates = transformations [i].Apply (coordinates);
 		}
-		return coordinates;
+		*/
+		return transformation.MultiplyPoint(coordinates);
 	}
 }
